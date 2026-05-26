@@ -8,6 +8,12 @@ permission and result contracts explicit.
 
 ## Example
 
+Install:
+
+```sh
+npm install @nordbyte/nordrelay-plugin-sdk
+```
+
 ```js
 import { runWorkflowAction } from "@nordbyte/nordrelay-plugin-sdk";
 

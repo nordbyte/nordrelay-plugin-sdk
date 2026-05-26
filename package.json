@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "SDK helpers and types for building NordRelay plugins.",
   "type": "module",
+  "homepage": "https://github.com/nordbyte/nordrelay-plugin-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nordbyte/nordrelay-plugin-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nordbyte/nordrelay-plugin-sdk/issues"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -17,6 +25,9 @@
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "check": "node --check dist/index.js",
     "test": "node --test test/*.test.mjs"
