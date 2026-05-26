@@ -80,3 +80,18 @@ or:
 
 Plugin results may also include `variables`, `html`, `text`, `artifacts`, or
 `diagnostics` depending on the invoked capability.
+
+## Collectors
+
+Long-running NordRelay plugin hosts can invoke collector capabilities on a
+schedule. Use `runCollector` for capabilities that sample local state, write
+history into the plugin data directory, and return a compact status payload.
+
+```js
+import { ok, runCollector } from "@nordbyte/nordrelay-plugin-sdk";
+
+runCollector(async ({ collectorId, host }) => {
+  host.requirePermission("system.metrics.read");
+  return ok({ collectorId, sampled: true });
+});
+```

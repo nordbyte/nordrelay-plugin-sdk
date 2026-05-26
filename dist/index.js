@@ -50,6 +50,42 @@ export async function runWorkflowAction(handler) {
   });
 }
 
+export async function runCommand(handler) {
+  return runPlugin(async (request) => {
+    if (request.type !== "command") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
+export async function runWebPanel(handler) {
+  return runPlugin(async (request) => {
+    if (request.type !== "web-panel") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
+export async function runDiagnostics(handler) {
+  return runPlugin(async (request) => {
+    if (request.type !== "diagnostics") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
+export async function runCollector(handler) {
+  return runPlugin(async (request) => {
+    if (request.type !== "collector") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
 export function writePluginResult(result) {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
@@ -65,6 +101,7 @@ function normalizeRequest(input) {
     command: typeof value.command === "string" ? value.command : undefined,
     panelId: typeof value.panelId === "string" ? value.panelId : undefined,
     handlerId: typeof value.handlerId === "string" ? value.handlerId : undefined,
+    collectorId: typeof value.collectorId === "string" ? value.collectorId : undefined,
     input: isRecord(value.input) ? value.input : {},
     settings: isRecord(value.settings) ? value.settings : {},
     dataDir: typeof value.dataDir === "string" ? value.dataDir : "",

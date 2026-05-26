@@ -1,6 +1,6 @@
 {
   "name": "@nordbyte/nordrelay-plugin-sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SDK helpers and types for building NordRelay plugins.",
   "type": "module",
   "homepage": "https://github.com/nordbyte/nordrelay-plugin-sdk#readme",

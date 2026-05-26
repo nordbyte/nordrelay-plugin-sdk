@@ -3,7 +3,8 @@ export type NordRelayPluginRequestType =
   | "command"
   | "web-panel"
   | "artifact-handler"
-  | "diagnostics";
+  | "diagnostics"
+  | "collector";
 
 export type NordRelayPluginPermission =
   | "runtime.read"
@@ -17,6 +18,7 @@ export type NordRelayPluginPermission =
   | "peers.read"
   | "diagnostics.read"
   | "settings.read"
+  | "system.metrics.read"
   | "network";
 
 export interface NordRelayPluginRuntimeContext {
@@ -51,6 +53,7 @@ export interface NordRelayPluginRequest<
   command?: string;
   panelId?: string;
   handlerId?: string;
+  collectorId?: string;
   input: Input;
   settings: Settings;
   dataDir: string;
@@ -135,6 +138,42 @@ export async function runWorkflowAction(handler: NordRelayPluginHandler): Promis
   });
 }
 
+export async function runCommand(handler: NordRelayPluginHandler): Promise<void> {
+  return runPlugin(async (request) => {
+    if (request.type !== "command") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
+export async function runWebPanel(handler: NordRelayPluginHandler): Promise<void> {
+  return runPlugin(async (request) => {
+    if (request.type !== "web-panel") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
+export async function runDiagnostics(handler: NordRelayPluginHandler): Promise<void> {
+  return runPlugin(async (request) => {
+    if (request.type !== "diagnostics") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
+export async function runCollector(handler: NordRelayPluginHandler): Promise<void> {
+  return runPlugin(async (request) => {
+    if (request.type !== "collector") {
+      throw new Error(`Unsupported plugin request type: ${request.type}`);
+    }
+    return handler(request);
+  });
+}
+
 export function writePluginResult(result: NordRelayPluginResult): void {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
@@ -150,6 +189,7 @@ function normalizeRequest(input: unknown): NordRelayPluginRequest {
     command: typeof value.command === "string" ? value.command : undefined,
     panelId: typeof value.panelId === "string" ? value.panelId : undefined,
     handlerId: typeof value.handlerId === "string" ? value.handlerId : undefined,
+    collectorId: typeof value.collectorId === "string" ? value.collectorId : undefined,
     input: isRecord(value.input) ? value.input : {},
     settings: isRecord(value.settings) ? value.settings : {},
     dataDir: typeof value.dataDir === "string" ? value.dataDir : "",

@@ -1,5 +1,5 @@
-export type NordRelayPluginRequestType = "workflow-action" | "command" | "web-panel" | "artifact-handler" | "diagnostics";
-export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "files.read" | "files.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "settings.read" | "network";
+export type NordRelayPluginRequestType = "workflow-action" | "command" | "web-panel" | "artifact-handler" | "diagnostics" | "collector";
+export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "files.read" | "files.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "settings.read" | "system.metrics.read" | "network";
 export interface NordRelayPluginRuntimeContext {
   version?: string;
   nodeId?: string;
@@ -27,6 +27,7 @@ export interface NordRelayPluginRequest<Input extends Record<string, unknown> = 
   command?: string;
   panelId?: string;
   handlerId?: string;
+  collectorId?: string;
   input: Input;
   settings: Settings;
   dataDir: string;
@@ -59,4 +60,8 @@ export declare function ok<Output = unknown>(output?: Output, extra?: Partial<No
 export declare function fail(message: string, extra?: Partial<NordRelayPluginResult>): NordRelayPluginResult;
 export declare function runPlugin(handler: NordRelayPluginHandler): Promise<void>;
 export declare function runWorkflowAction(handler: NordRelayPluginHandler): Promise<void>;
+export declare function runCommand(handler: NordRelayPluginHandler): Promise<void>;
+export declare function runWebPanel(handler: NordRelayPluginHandler): Promise<void>;
+export declare function runDiagnostics(handler: NordRelayPluginHandler): Promise<void>;
+export declare function runCollector(handler: NordRelayPluginHandler): Promise<void>;
 export declare function writePluginResult(result: NordRelayPluginResult): void;
