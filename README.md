@@ -81,6 +81,44 @@ or:
 Plugin results may also include `variables`, `html`, `text`, `artifacts`, or
 `diagnostics` depending on the invoked capability.
 
+## Web Panel UI Helpers
+
+Web panel results can return HTML fragments. NordRelay wraps those fragments in
+the shared plugin panel shell, injects the current light/dark theme, and exposes
+the official WebUI classes. Use the `ui` helpers to avoid custom CSS for common
+panels:
+
+```js
+import { ok, runWebPanel, ui } from "@nordbyte/nordrelay-plugin-sdk";
+
+runWebPanel(async ({ context }) => {
+  const rows = (context.peers ?? []).map((peer) => ({
+    name: peer.name,
+    status: peer.health
+  }));
+
+  const html = ui.panel(
+    "Peer health",
+    ui.row([
+      ui.metric("Peers", rows.length),
+      ui.metric("Node", context.runtime?.nodeName ?? "local")
+    ].join("")) +
+      ui.table([
+        { key: "name", label: "Peer", className: "primary-cell" },
+        { label: "Status", render: (row) => ui.badge(row.status ?? "unknown", row.status === "ok" ? "enabled" : "warning") }
+      ], rows, { emptyText: "No peers available." })
+  );
+
+  return ok(undefined, { html });
+});
+```
+
+Available helpers include `ui.panel`, `ui.item`, `ui.metric`, `ui.progress`,
+`ui.table`, `ui.badge`, `ui.chip`, `ui.button`, `ui.empty`, `ui.loading`,
+`ui.error`, `ui.callout`, `ui.codeBlock`, `ui.logView`, `ui.gallery`, and
+`ui.artifactCard`. Helper text values are escaped by default; explicit `render`
+callbacks and panel bodies are treated as trusted HTML.
+
 ## Collectors
 
 Long-running NordRelay plugin hosts can invoke collector capabilities on a

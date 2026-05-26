@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 
-import { createHost, ok } from "../dist/index.js";
+import { createHost, ok, ui } from "../dist/index.js";
 
 test("creates a scoped host helper", () => {
   const host = createHost({
@@ -18,6 +18,25 @@ test("creates a scoped host helper", () => {
 
 test("creates ok results", () => {
   assert.deepEqual(ok({ value: 1 }), { ok: true, output: { value: 1 } });
+});
+
+test("renders official NordRelay plugin UI building blocks", () => {
+  assert.equal(ui.badge("Latest", "enabled"), '<span class="badge enabled">Latest</span>');
+  assert.equal(ui.button("Open", { variant: "secondary", mini: true, data: { pluginPanelOpen: "system-monitor" } }), '<button type="button" class="secondary mini-button" data-plugin-panel-open="system-monitor">Open</button>');
+  assert.equal(ui.metric("CPU", "12%", { detail: "1m avg" }), '<div class="metric"><div class="label">CPU</div><div class="value">12%</div><small>1m avg</small></div>');
+  assert.equal(ui.progress(150), '<div class="progress"><span class="progress-fill" style="width:100%"></span></div>');
+});
+
+test("renders escaped tables with raw custom cells", () => {
+  const html = ui.table([
+    { key: "name", label: "Name", className: "primary-cell" },
+    { label: "Status", render: () => ui.badge("ok", "enabled") },
+  ], [{ name: "<node>" }], { className: "nodes-table", minWidth: 720 });
+
+  assert.match(html, /class="data-table nodes-table"/);
+  assert.match(html, /style="--table-min-width:720px"/);
+  assert.match(html, /&lt;node&gt;/);
+  assert.match(html, /<span class="badge enabled">ok<\/span>/);
 });
 
 test("supports collector requests", async () => {

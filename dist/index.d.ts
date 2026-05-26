@@ -51,9 +51,100 @@ export interface NordRelayPluginHost {
   requirePermission(permission: string): void;
   getContext<K extends keyof NordRelayPluginHostContext>(key: K): NordRelayPluginHostContext[K] | undefined;
 }
+export type NordRelayUiStatus = "enabled" | "disabled" | "warning" | "failed" | "planned" | "error" | "latest" | "ok" | "warn";
+export type NordRelayUiButtonVariant = "primary" | "secondary" | "danger";
+export type NordRelayUiCalloutTone = "default" | "muted" | "warn" | "error";
+export interface NordRelayUiButtonOptions {
+  variant?: NordRelayUiButtonVariant;
+  mini?: boolean;
+  className?: string;
+  data?: Record<string, unknown>;
+  disabled?: boolean;
+  title?: string;
+  type?: "button" | "submit" | "reset";
+}
+export interface NordRelayUiMetricOptions {
+  status?: "ok" | "warn" | "error";
+  detail?: unknown;
+  className?: string;
+}
+export interface NordRelayUiProgressOptions {
+  status?: "ok" | "warn" | "error";
+  title?: string;
+  className?: string;
+}
+export interface NordRelayUiPanelOptions {
+  className?: string;
+  actions?: unknown;
+  badge?: {
+    text: unknown;
+    status?: NordRelayUiStatus;
+  };
+}
+export interface NordRelayUiTableColumn<Row extends Record<string, unknown> = Record<string, unknown>> {
+  key?: keyof Row | string;
+  label: string;
+  className?: string;
+  render?: (row: Row, index: number) => unknown;
+}
+export interface NordRelayUiTableOptions {
+  className?: string;
+  emptyText?: string;
+  minWidth?: number | string;
+}
+export interface NordRelayUiArtifactCard {
+  title?: unknown;
+  detail?: unknown;
+  href?: unknown;
+  imageSrc?: unknown;
+  alt?: unknown;
+  status?: NordRelayUiStatus;
+}
 export type NordRelayPluginHandler<Input extends Record<string, unknown> = Record<string, unknown>, Settings extends Record<string, unknown> = Record<string, unknown>, Output = unknown> = (request: NordRelayPluginRequest<Input, Settings> & {
   host: NordRelayPluginHost;
 }) => Promise<NordRelayPluginResult<Output> | Output> | NordRelayPluginResult<Output> | Output;
+export declare const ui: {
+  escapeHtml: typeof escapeHtml;
+  attr: typeof attr;
+  badge: typeof badge;
+  chip: typeof chip;
+  button: typeof button;
+  panel: typeof panel;
+  item: typeof item;
+  empty: typeof empty;
+  loading: typeof loading;
+  error: typeof error;
+  callout: typeof callout;
+  metric: typeof metric;
+  progress: typeof progress;
+  table: typeof table;
+  toolbar: typeof toolbar;
+  row: typeof row;
+  codeBlock: typeof codeBlock;
+  logView: typeof logView;
+  gallery: typeof gallery;
+  artifactCard: typeof artifactCard;
+};
+export declare function escapeHtml(value: unknown): string;
+export declare function attr(value: unknown): string;
+export declare function badge(text: unknown, status?: NordRelayUiStatus): string;
+export declare function chip(text: unknown, status?: "ok" | "warn" | "error"): string;
+export declare function button(label: unknown, options?: NordRelayUiButtonOptions): string;
+export declare function panel(title: unknown, body?: unknown, options?: NordRelayUiPanelOptions): string;
+export declare function item(title: unknown, body?: unknown, options?: NordRelayUiPanelOptions): string;
+export declare function empty(message?: string): string;
+export declare function loading(message?: string): string;
+export declare function error(message: unknown): string;
+export declare function callout(message: unknown, tone?: NordRelayUiCalloutTone): string;
+export declare function metric(label: unknown, value: unknown, options?: NordRelayUiMetricOptions): string;
+export declare function progress(value: unknown, options?: NordRelayUiProgressOptions): string;
+export declare function table<Row extends Record<string, unknown>>(columns: NordRelayUiTableColumn<Row>[], rows: Row[], options?: NordRelayUiTableOptions): string;
+export declare function toolbar(children: unknown): string;
+export declare function row(children: unknown): string;
+export declare function codeBlock(code: unknown, language?: string): string;
+export declare function logView(text: unknown): string;
+export declare function gallery(cards: NordRelayUiArtifactCard[]): string;
+export declare function artifactCard(card: NordRelayUiArtifactCard): string;
 export declare function createHost(request: NordRelayPluginRequest): NordRelayPluginHost;
 export declare function readPluginRequest(): Promise<NordRelayPluginRequest>;
 export declare function ok<Output = unknown>(output?: Output, extra?: Partial<NordRelayPluginResult<Output>>): NordRelayPluginResult<Output>;
