@@ -1,5 +1,5 @@
 export type NordRelayPluginRequestType = "workflow-action" | "command" | "web-panel" | "artifact-handler" | "diagnostics";
-export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "network";
+export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "files.read" | "files.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "settings.read" | "network";
 export interface NordRelayPluginRuntimeContext {
   version?: string;
   nodeId?: string;
@@ -9,18 +9,20 @@ export interface NordRelayPluginRuntimeContext {
 }
 export interface NordRelayPluginHostContext {
   runtime?: NordRelayPluginRuntimeContext;
-  workflow?: Record<string, unknown>;
+  workflows?: Record<string, unknown>;
   session?: Record<string, unknown> | null;
   sessions?: Array<Record<string, unknown>>;
   artifacts?: Array<Record<string, unknown>>;
   activity?: Array<Record<string, unknown>>;
   peers?: Array<Record<string, unknown>>;
   diagnostics?: Record<string, unknown>;
+  settings?: Record<string, unknown>;
 }
 export interface NordRelayPluginRequest<Input extends Record<string, unknown> = Record<string, unknown>, Settings extends Record<string, unknown> = Record<string, unknown>> {
   protocolVersion: 1;
   type: NordRelayPluginRequestType;
   pluginId: string;
+  capabilityId?: string;
   actionId?: string;
   command?: string;
   panelId?: string;

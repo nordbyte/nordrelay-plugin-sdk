@@ -11,9 +11,12 @@ export type NordRelayPluginPermission =
   | "activity.read"
   | "artifacts.read"
   | "artifacts.write"
+  | "files.read"
+  | "files.write"
   | "workflows.read"
   | "peers.read"
   | "diagnostics.read"
+  | "settings.read"
   | "network";
 
 export interface NordRelayPluginRuntimeContext {
@@ -26,13 +29,14 @@ export interface NordRelayPluginRuntimeContext {
 
 export interface NordRelayPluginHostContext {
   runtime?: NordRelayPluginRuntimeContext;
-  workflow?: Record<string, unknown>;
+  workflows?: Record<string, unknown>;
   session?: Record<string, unknown> | null;
   sessions?: Array<Record<string, unknown>>;
   artifacts?: Array<Record<string, unknown>>;
   activity?: Array<Record<string, unknown>>;
   peers?: Array<Record<string, unknown>>;
   diagnostics?: Record<string, unknown>;
+  settings?: Record<string, unknown>;
 }
 
 export interface NordRelayPluginRequest<
@@ -42,6 +46,7 @@ export interface NordRelayPluginRequest<
   protocolVersion: 1;
   type: NordRelayPluginRequestType;
   pluginId: string;
+  capabilityId?: string;
   actionId?: string;
   command?: string;
   panelId?: string;
@@ -140,6 +145,7 @@ function normalizeRequest(input: unknown): NordRelayPluginRequest {
     protocolVersion: value.protocolVersion === 1 ? 1 : 1,
     type: typeof value.type === "string" ? value.type as NordRelayPluginRequestType : "workflow-action",
     pluginId: typeof value.pluginId === "string" ? value.pluginId : "",
+    capabilityId: typeof value.capabilityId === "string" ? value.capabilityId : undefined,
     actionId: typeof value.actionId === "string" ? value.actionId : undefined,
     command: typeof value.command === "string" ? value.command : undefined,
     panelId: typeof value.panelId === "string" ? value.panelId : undefined,

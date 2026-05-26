@@ -60,6 +60,7 @@ function normalizeRequest(input) {
     protocolVersion: value.protocolVersion === 1 ? 1 : 1,
     type: typeof value.type === "string" ? value.type : "workflow-action",
     pluginId: typeof value.pluginId === "string" ? value.pluginId : "",
+    capabilityId: typeof value.capabilityId === "string" ? value.capabilityId : undefined,
     actionId: typeof value.actionId === "string" ? value.actionId : undefined,
     command: typeof value.command === "string" ? value.command : undefined,
     panelId: typeof value.panelId === "string" ? value.panelId : undefined,

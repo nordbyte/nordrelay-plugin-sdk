@@ -2,6 +2,10 @@
 
 Small dependency-free helpers and public types for NordRelay plugins.
 
+NordRelay sends one JSON request to the plugin process on stdin and expects one
+JSON result on stdout. The SDK keeps plugin code small while making the request,
+permission and result contracts explicit.
+
 ## Example
 
 ```js
@@ -22,7 +26,7 @@ runWorkflowAction(async ({ input, settings, context, host }) => {
 });
 ```
 
-Plugins receive one JSON request on stdin and must write one JSON result on stdout. Host data in `context` is already filtered by NordRelay based on the permissions declared and approved for the plugin.
+Host data in `context` is already filtered by NordRelay based on the permissions declared and approved for the plugin. Plugins run with a sanitized environment and their `HOME`/temporary directories point to the plugin data directory.
 
 ## Manifest
 
@@ -37,7 +41,16 @@ Plugins receive one JSON request on stdin and must write one JSON result on stdo
     "workflowActions": [
       {
         "id": "example.run",
-        "title": "Example action"
+        "title": "Example action",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "message": { "type": "string", "title": "Message" }
+          }
+        },
+        "outputVariables": {
+          "lastMessage": "message"
+        }
       }
     ]
   },
@@ -58,3 +71,6 @@ or:
 ```json
 { "ok": false, "stderr": "Human readable error" }
 ```
+
+Plugin results may also include `variables`, `html`, `text`, `artifacts`, or
+`diagnostics` depending on the invoked capability.
