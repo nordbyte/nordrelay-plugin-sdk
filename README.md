@@ -83,10 +83,10 @@ Plugin results may also include `variables`, `html`, `text`, `artifacts`, or
 
 ## Web Panel UI Helpers
 
-Web panel results can return HTML fragments. NordRelay wraps those fragments in
-the shared plugin panel shell, injects the current light/dark theme, and exposes
-the official WebUI classes. Use the `ui` helpers to avoid custom CSS for common
-panels:
+Web panel results can return HTML fragments. NordRelay mounts those fragments
+directly into the WebUI, applies the shared WebUI classes, and can run trusted
+panel JavaScript when the panel manifest sets `allowClientScript: true`. Use the
+`ui` helpers to avoid custom CSS for common panels:
 
 ```js
 import { ok, runWebPanel, ui } from "@nordbyte/nordrelay-plugin-sdk";
@@ -109,15 +109,35 @@ runWebPanel(async ({ context }) => {
       ], rows, { emptyText: "No peers available." })
   );
 
-  return ok(undefined, { html });
+  return ok(undefined, { panel: { html } });
 });
 ```
+
+Interactive panels can add a `panel.script` string. The script runs with an
+`api` object in scope:
+
+```js
+return ok(undefined, {
+  panel: {
+    html: `<button data-refresh>Refresh</button>`,
+    script: `
+      api.root.querySelector('[data-refresh]').onclick = () => api.reload({});
+      api.setInterval(() => api.reload({}), 10000);
+    `
+  }
+});
+```
+
+Available API methods include `api.reload(input)`, `api.toast(message)`,
+`api.copyText(value, label)`, `api.setInterval(fn, ms)`,
+`api.setTimeout(fn, ms)`, `api.addEventListener(target, type, listener)`, and
+`api.onCleanup(fn)`.
 
 Available helpers include `ui.panel`, `ui.item`, `ui.metric`, `ui.progress`,
 `ui.table`, `ui.badge`, `ui.chip`, `ui.button`, `ui.empty`, `ui.loading`,
 `ui.error`, `ui.callout`, `ui.codeBlock`, `ui.logView`, `ui.gallery`, and
 `ui.artifactCard`. Helper text values are escaped by default; explicit `render`
-callbacks and panel bodies are treated as trusted HTML.
+callbacks, panel bodies, and panel scripts are treated as trusted content.
 
 ## Collectors
 

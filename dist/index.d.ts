@@ -40,6 +40,11 @@ export interface NordRelayPluginResult<Output = unknown> {
   stdout?: string;
   stderr?: string;
   variables?: Record<string, string>;
+  panel?: {
+    html?: string;
+    script?: string;
+    styles?: string;
+  };
   html?: string;
   text?: string;
   artifacts?: Array<Record<string, unknown>>;
