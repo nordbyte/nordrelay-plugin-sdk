@@ -19,6 +19,8 @@ export type NordRelayPluginPermission =
   | "diagnostics.read"
   | "settings.read"
   | "system.metrics.read"
+  | "system.packages.read"
+  | "system.updates.read"
   | "network";
 
 export interface NordRelayPluginRuntimeContext {

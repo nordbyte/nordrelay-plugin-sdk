@@ -1,5 +1,5 @@
 export type NordRelayPluginRequestType = "workflow-action" | "command" | "web-panel" | "artifact-handler" | "diagnostics" | "collector";
-export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "files.read" | "files.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "settings.read" | "system.metrics.read" | "network";
+export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "files.read" | "files.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "settings.read" | "system.metrics.read" | "system.packages.read" | "system.updates.read" | "network";
 export interface NordRelayPluginRuntimeContext {
   version?: string;
   nodeId?: string;
