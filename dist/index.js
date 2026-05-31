@@ -23,6 +23,21 @@ const ui = {
   chart,
   tabs
 };
+const panelUi = {
+  node,
+  stack,
+  rowNode,
+  panelNode,
+  metricNode,
+  badgeNode,
+  buttonNode,
+  progressNode,
+  calloutNode,
+  emptyNode,
+  codeNode,
+  logNode,
+  htmlNode
+};
 function escapeHtml(value) {
   return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
@@ -136,6 +151,48 @@ function tabs(items) {
     const active = item2.active ? " active" : "";
     return `<button type="button" role="tab" class="${active.trim()}" aria-selected="${item2.active ? "true" : "false"}" data-tab-id="${attr(item2.id)}"${dataAttrs(item2.data)}>${escapeHtml(item2.label)}</button>`;
   }).join("")}</div>`;
+}
+function node(type, props = {}, children) {
+  return { type, props, children };
+}
+function stack(children, props = {}) {
+  return node("stack", props, children);
+}
+function rowNode(children, props = {}) {
+  return node("row", props, children);
+}
+function panelNode(title, children, props = {}) {
+  return node("panel", { ...props, title }, children);
+}
+function metricNode(label, value, props = {}) {
+  return node("metric", { ...props, label, value });
+}
+function badgeNode(text, status = "disabled") {
+  return node("badge", { text, status });
+}
+function buttonNode(label, props = {}) {
+  return node("button", { ...props, label });
+}
+function progressNode(value, props = {}) {
+  return node("progress", { ...props, value });
+}
+function calloutNode(message, tone = "default") {
+  return node("callout", { message, tone });
+}
+function emptyNode(message = "No data available.") {
+  return node("empty", { message });
+}
+function codeNode(code) {
+  return node("code", { code });
+}
+function logNode(text) {
+  return node("log", { text });
+}
+function htmlNode(html) {
+  return node("html", { html });
+}
+function panelResult(uiNode, extra = {}) {
+  return { ok: true, ...extra, panel: { ...(extra.panel ?? {}), ui: uiNode } };
 }
 function definePluginManifest(manifest2) {
   validateManifestBasics(manifest2);
@@ -373,33 +430,47 @@ export {
   artifactCard,
   attr,
   badge,
+  badgeNode,
   button,
+  buttonNode,
   callout,
+  calloutNode,
   chart,
   chip,
   codeBlock,
+  codeNode,
   createHost,
   definePluginManifest,
   empty,
+  emptyNode,
   error,
   escapeHtml,
   fail,
   form,
   gallery,
   generatePluginMarkdown,
+  htmlNode,
   item,
   loading,
   logView,
+  logNode,
   manifest,
   metric,
+  metricNode,
+  node,
   ok,
   panel,
+  panelNode,
   panelEventsScript,
   panelJobRunnerScript,
+  panelResult,
+  panelUi,
   pluginJobBadge,
   progress,
+  progressNode,
   readPluginRequest,
   row,
+  rowNode,
   runCollector,
   runCommand,
   runDiagnostics,
@@ -409,6 +480,7 @@ export {
   table,
   tabs,
   toolbar,
+  stack,
   ui,
   writePluginResult
 };

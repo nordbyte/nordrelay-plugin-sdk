@@ -139,6 +139,19 @@ runWebPanel(async ({ context }) => {
 });
 ```
 
+For simpler panels you can skip HTML strings and return a declarative panel tree:
+
+```js
+import { panelResult, panelUi, runWebPanel } from "@nordbyte/nordrelay-plugin-sdk";
+
+runWebPanel(async () => {
+  return panelResult(panelUi.panelNode("Node summary", [
+    panelUi.metricNode("CPU", "12%"),
+    panelUi.progressNode(12, { status: "ok", title: "CPU usage" })
+  ]));
+});
+```
+
 Interactive panels can add a `panel.script` string. The script runs with an
 `api` object in scope:
 

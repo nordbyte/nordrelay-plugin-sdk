@@ -45,6 +45,7 @@ export interface NordRelayPluginResult<Output = unknown> {
         html?: string;
         script?: string;
         styles?: string;
+        ui?: NordRelayUiNode | NordRelayUiNode[];
     };
     html?: string;
     text?: string;
@@ -239,6 +240,11 @@ export interface NordRelayUiChartSeries {
     values: Array<number | null | undefined>;
     status?: "ok" | "warn" | "error";
 }
+export interface NordRelayUiNode {
+    type: string;
+    props?: Record<string, unknown>;
+    children?: string | NordRelayUiNode | NordRelayUiNode[];
+}
 export type NordRelayPluginHandler<Input extends Record<string, unknown> = Record<string, unknown>, Settings extends Record<string, unknown> = Record<string, unknown>, Output = unknown> = (request: NordRelayPluginRequest<Input, Settings> & {
     host: NordRelayPluginHost;
 }) => Promise<NordRelayPluginResult<Output> | Output> | NordRelayPluginResult<Output> | Output;
@@ -266,6 +272,21 @@ export declare const ui: {
     form: typeof form;
     chart: typeof chart;
     tabs: typeof tabs;
+};
+export declare const panelUi: {
+    node: typeof node;
+    stack: typeof stack;
+    rowNode: typeof rowNode;
+    panelNode: typeof panelNode;
+    metricNode: typeof metricNode;
+    badgeNode: typeof badgeNode;
+    buttonNode: typeof buttonNode;
+    progressNode: typeof progressNode;
+    calloutNode: typeof calloutNode;
+    emptyNode: typeof emptyNode;
+    codeNode: typeof codeNode;
+    logNode: typeof logNode;
+    htmlNode: typeof htmlNode;
 };
 export declare function escapeHtml(value: unknown): string;
 export declare function attr(value: unknown): string;
@@ -298,6 +319,20 @@ export declare function tabs(items: Array<{
     active?: boolean;
     data?: Record<string, unknown>;
 }>): string;
+export declare function node(type: string, props?: Record<string, unknown>, children?: NordRelayUiNode["children"]): NordRelayUiNode;
+export declare function stack(children: NordRelayUiNode["children"], props?: Record<string, unknown>): NordRelayUiNode;
+export declare function rowNode(children: NordRelayUiNode["children"], props?: Record<string, unknown>): NordRelayUiNode;
+export declare function panelNode(title: unknown, children: NordRelayUiNode["children"], props?: Record<string, unknown>): NordRelayUiNode;
+export declare function metricNode(label: unknown, value: unknown, props?: Record<string, unknown>): NordRelayUiNode;
+export declare function badgeNode(text: unknown, status?: NordRelayUiStatus): NordRelayUiNode;
+export declare function buttonNode(label: unknown, props?: Record<string, unknown>): NordRelayUiNode;
+export declare function progressNode(value: unknown, props?: Record<string, unknown>): NordRelayUiNode;
+export declare function calloutNode(message: unknown, tone?: NordRelayUiCalloutTone): NordRelayUiNode;
+export declare function emptyNode(message?: string): NordRelayUiNode;
+export declare function codeNode(code: unknown): NordRelayUiNode;
+export declare function logNode(text: unknown): NordRelayUiNode;
+export declare function htmlNode(html: unknown): NordRelayUiNode;
+export declare function panelResult(uiNode: NordRelayUiNode | NordRelayUiNode[], extra?: Partial<NordRelayPluginResult>): NordRelayPluginResult;
 export declare function definePluginManifest<const Manifest extends NordRelayPluginManifest>(manifest: Manifest): Manifest;
 export declare const manifest: {
     define: typeof definePluginManifest;

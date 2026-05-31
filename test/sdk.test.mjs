@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 
-import { createHost, generatePluginMarkdown, manifest, ok, panelEventsScript, panelJobRunnerScript, pluginJobBadge, ui } from "../dist/index.js";
+import { createHost, generatePluginMarkdown, manifest, ok, panelEventsScript, panelJobRunnerScript, pluginJobBadge, panelResult, panelUi, ui } from "../dist/index.js";
 
 test("creates a scoped host helper", () => {
   const host = createHost({
@@ -61,6 +61,17 @@ test("renders form, chart, tabs, and job badges", () => {
   assert.equal(pluginJobBadge({ id: "1", pluginId: "p", title: "Job", status: "completed", input: {}, logs: [], createdAt: new Date().toISOString() }), '<span class="badge enabled">completed</span>');
   assert.match(panelEventsScript(), /subscribe\?\.\("jobs"/);
   assert.match(panelJobRunnerScript({ buttonSelector: "[data-run]", command: "refresh" }), /api\.jobs\.start\("refresh"/);
+});
+
+test("builds declarative panel UI results", () => {
+  const result = panelResult(panelUi.panelNode("Dashboard", [
+    panelUi.metricNode("CPU", "12%"),
+    panelUi.progressNode(12, { status: "ok" }),
+  ]));
+
+  assert.equal(result.ok, true);
+  assert.equal(result.panel.ui.type, "panel");
+  assert.equal(result.panel.ui.children[0].props.label, "CPU");
 });
 
 test("supports collector requests", async () => {

@@ -88,6 +88,7 @@ export interface NordRelayPluginResult<Output = unknown> {
     html?: string;
     script?: string;
     styles?: string;
+    ui?: NordRelayUiNode | NordRelayUiNode[];
   };
   html?: string;
   text?: string;
@@ -232,6 +233,12 @@ export interface NordRelayUiChartSeries {
   status?: "ok" | "warn" | "error";
 }
 
+export interface NordRelayUiNode {
+  type: string;
+  props?: Record<string, unknown>;
+  children?: string | NordRelayUiNode | NordRelayUiNode[];
+}
+
 export type NordRelayPluginHandler<
   Input extends Record<string, unknown> = Record<string, unknown>,
   Settings extends Record<string, unknown> = Record<string, unknown>,
@@ -262,6 +269,22 @@ export const ui = {
   form,
   chart,
   tabs,
+};
+
+export const panelUi = {
+  node,
+  stack,
+  rowNode,
+  panelNode,
+  metricNode,
+  badgeNode,
+  buttonNode,
+  progressNode,
+  calloutNode,
+  emptyNode,
+  codeNode,
+  logNode,
+  htmlNode,
 };
 
 export function escapeHtml(value: unknown): string {
@@ -406,6 +429,62 @@ export function tabs(items: Array<{ id: string; label: unknown; active?: boolean
     const active = item.active ? " active" : "";
     return `<button type="button" role="tab" class="${active.trim()}" aria-selected="${item.active ? "true" : "false"}" data-tab-id="${attr(item.id)}"${dataAttrs(item.data)}>${escapeHtml(item.label)}</button>`;
   }).join("")}</div>`;
+}
+
+export function node(type: string, props: Record<string, unknown> = {}, children?: NordRelayUiNode["children"]): NordRelayUiNode {
+  return { type, props, children };
+}
+
+export function stack(children: NordRelayUiNode["children"], props: Record<string, unknown> = {}): NordRelayUiNode {
+  return node("stack", props, children);
+}
+
+export function rowNode(children: NordRelayUiNode["children"], props: Record<string, unknown> = {}): NordRelayUiNode {
+  return node("row", props, children);
+}
+
+export function panelNode(title: unknown, children: NordRelayUiNode["children"], props: Record<string, unknown> = {}): NordRelayUiNode {
+  return node("panel", { ...props, title }, children);
+}
+
+export function metricNode(label: unknown, value: unknown, props: Record<string, unknown> = {}): NordRelayUiNode {
+  return node("metric", { ...props, label, value });
+}
+
+export function badgeNode(text: unknown, status: NordRelayUiStatus = "disabled"): NordRelayUiNode {
+  return node("badge", { text, status });
+}
+
+export function buttonNode(label: unknown, props: Record<string, unknown> = {}): NordRelayUiNode {
+  return node("button", { ...props, label });
+}
+
+export function progressNode(value: unknown, props: Record<string, unknown> = {}): NordRelayUiNode {
+  return node("progress", { ...props, value });
+}
+
+export function calloutNode(message: unknown, tone: NordRelayUiCalloutTone = "default"): NordRelayUiNode {
+  return node("callout", { message, tone });
+}
+
+export function emptyNode(message = "No data available."): NordRelayUiNode {
+  return node("empty", { message });
+}
+
+export function codeNode(code: unknown): NordRelayUiNode {
+  return node("code", { code });
+}
+
+export function logNode(text: unknown): NordRelayUiNode {
+  return node("log", { text });
+}
+
+export function htmlNode(html: unknown): NordRelayUiNode {
+  return node("html", { html });
+}
+
+export function panelResult(uiNode: NordRelayUiNode | NordRelayUiNode[], extra: Partial<NordRelayPluginResult> = {}): NordRelayPluginResult {
+  return { ok: true, ...extra, panel: { ...(extra.panel ?? {}), ui: uiNode } };
 }
 
 export function definePluginManifest<const Manifest extends NordRelayPluginManifest>(manifest: Manifest): Manifest {
