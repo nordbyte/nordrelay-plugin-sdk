@@ -36,6 +36,32 @@ Host data in `context` is already filtered by NordRelay based on the permissions
 
 ## Manifest
 
+Use the typed manifest builder when authoring plugins:
+
+```js
+import { manifest } from "@nordbyte/nordrelay-plugin-sdk";
+
+export default manifest.define({
+  id: "example-plugin",
+  name: "Example Plugin",
+  version: "0.1.0",
+  entry: "index.js",
+  permissions: ["runtime.read"],
+  capabilities: {
+    commands: [
+      manifest.command("refresh", "Refresh data", {
+        timeoutMs: 30000
+      })
+    ],
+    webPanels: [
+      manifest.webPanel("dashboard", "Dashboard", {
+        allowClientScript: true
+      })
+    ]
+  }
+});
+```
+
 ```json
 {
   "id": "example-plugin",
@@ -128,16 +154,35 @@ return ok(undefined, {
 });
 ```
 
-Available API methods include `api.reload(input)`, `api.toast(message)`,
-`api.copyText(value, label)`, `api.setInterval(fn, ms)`,
+Available API methods include `api.reload(input)`, `api.invokeCommand(command,
+input)`, `api.jobs.list()`, `api.jobs.start(command, input)`,
+`api.jobs.cancel(jobId)`, `api.events.subscribe(eventName, listener)`,
+`api.toast(message)`, `api.copyText(value, label)`, `api.setInterval(fn, ms)`,
 `api.setTimeout(fn, ms)`, `api.addEventListener(target, type, listener)`, and
 `api.onCleanup(fn)`.
 
 Available helpers include `ui.panel`, `ui.item`, `ui.metric`, `ui.progress`,
-`ui.table`, `ui.badge`, `ui.chip`, `ui.button`, `ui.empty`, `ui.loading`,
-`ui.error`, `ui.callout`, `ui.codeBlock`, `ui.logView`, `ui.gallery`, and
-`ui.artifactCard`. Helper text values are escaped by default; explicit `render`
-callbacks, panel bodies, and panel scripts are treated as trusted content.
+`ui.table`, `ui.form`, `ui.chart`, `ui.tabs`, `ui.badge`, `ui.chip`,
+`ui.button`, `ui.empty`, `ui.loading`, `ui.error`, `ui.callout`,
+`ui.codeBlock`, `ui.logView`, `ui.gallery`, and `ui.artifactCard`. Helper text
+values are escaped by default; explicit `render` callbacks, panel bodies, and
+panel scripts are treated as trusted content.
+
+## Jobs, Events, And Docs
+
+NordRelay exposes plugin command jobs through the host API. Use jobs for update,
+export, cleanup, or other long-running tasks where the WebUI should show status,
+logs, and final results instead of blocking a panel request.
+
+The SDK exports `NordRelayPluginPanelApi` and `NordRelayPluginJob` types,
+`pluginJobBadge(job)` for WebUI fragments, `panelEventsScript(channel)` for the
+host event bridge, and `panelJobRunnerScript({ buttonSelector, command })` for a
+small standard button-to-job binding.
+
+`generatePluginMarkdown(manifest)` creates a Markdown reference from a plugin
+manifest, including permissions, commands, and settings. Official plugins should
+keep README capability sections generated from their manifest so CI can detect
+documentation drift.
 
 ## Collectors
 

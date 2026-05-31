@@ -1,3 +1,14 @@
+declare const process: {
+  exitCode?: number;
+  stdout: { write(value: string): void };
+  stdin: {
+    setEncoding(encoding: string): void;
+    on(event: "data", listener: (chunk: string) => void): void;
+    on(event: "error", listener: (error: Error) => void): void;
+    on(event: "end", listener: () => void): void;
+  };
+};
+
 export type NordRelayPluginRequestType =
   | "workflow-action"
   | "command"
@@ -24,6 +35,8 @@ export type NordRelayPluginPermission =
   | "system.updates.read"
   | "system.updates.write"
   | "network";
+
+export type NordRelayPluginTrustLevel = "official" | "verified" | "community" | "local" | "untrusted";
 
 export interface NordRelayPluginRuntimeContext {
   version?: string;
@@ -80,6 +93,67 @@ export interface NordRelayPluginResult<Output = unknown> {
   text?: string;
   artifacts?: Array<Record<string, unknown>>;
   diagnostics?: Record<string, unknown>;
+}
+
+export interface NordRelayPluginManifest {
+  id: string;
+  name: string;
+  version: string;
+  description?: string;
+  author?: string;
+  homepage?: string;
+  repository?: string;
+  license?: string;
+  nordrelay?: string;
+  entry?: string;
+  permissions?: NordRelayPluginPermission[];
+  capabilities?: {
+    commands?: Array<{ name: string; title?: string; description?: string; permission?: string; inputSchema?: Record<string, unknown>; timeoutMs?: number }>;
+    workflowActions?: Array<{ id: string; title: string; description?: string; inputSchema?: Record<string, unknown>; outputVariables?: Record<string, string>; timeoutMs?: number }>;
+    webPanels?: Array<{ id: string; title: string; description?: string; permission?: string; inputSchema?: Record<string, unknown>; aggregateCommand?: string; allowClientScript?: boolean; placement?: "plugins" | "monitor" | "nav"; timeoutMs?: number }>;
+    artifactHandlers?: Array<{ id: string; title: string; description?: string; inputSchema?: Record<string, unknown>; timeoutMs?: number }>;
+    collectors?: Array<{ id: string; title: string; description?: string; intervalMs?: number; runOnStart?: boolean; inputSchema?: Record<string, unknown>; timeoutMs?: number }>;
+    diagnostics?: boolean;
+  };
+  settings?: Array<{ key: string; label: string; type: "string" | "number" | "boolean" | "secret" | "select"; description?: string; required?: boolean; default?: unknown; options?: Array<{ label: string; value: string }> }>;
+}
+
+export interface NordRelayPluginJob {
+  id: string;
+  pluginId: string;
+  title: string;
+  command?: string;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  input: Record<string, unknown>;
+  logs: Array<{ timestamp: string; level: "info" | "warn" | "error"; message: string }>;
+  progress?: { current?: number; total?: number; label?: string };
+  createdAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+}
+
+export interface NordRelayPluginPanelApi {
+  id: string;
+  root: HTMLElement;
+  reload(input?: Record<string, unknown>): Promise<void> | void;
+  invokeCommand(command: string, input?: Record<string, unknown>, options?: Record<string, unknown>): Promise<unknown>;
+  jobs: {
+    list(options?: Record<string, unknown>): Promise<{ jobs?: NordRelayPluginJob[] } | unknown>;
+    start(command: string, input?: Record<string, unknown>, options?: Record<string, unknown>): Promise<NordRelayPluginJob | unknown>;
+    cancel(jobId: string, options?: Record<string, unknown>): Promise<NordRelayPluginJob | unknown>;
+  };
+  events: {
+    subscribe(eventName: string, listener: (event: unknown) => void): EventSource;
+  };
+  toast(message: unknown, options?: Record<string, unknown>): void;
+  copyText(value: unknown, label?: unknown): void;
+  setInterval(fn: () => void, ms: number): number;
+  setTimeout(fn: () => void, ms: number): number;
+  addEventListener(target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  isVisible(): boolean;
+  isActivePage(): boolean;
+  onCleanup(fn: () => void): void;
+  cleanup(): void;
 }
 
 export interface NordRelayPluginHost {
@@ -143,6 +217,21 @@ export interface NordRelayUiArtifactCard {
   status?: NordRelayUiStatus;
 }
 
+export interface NordRelayUiFormField {
+  key: string;
+  label?: string;
+  type?: "string" | "number" | "boolean" | "secret" | "select";
+  description?: string;
+  value?: unknown;
+  options?: Array<{ label: string; value: string }>;
+}
+
+export interface NordRelayUiChartSeries {
+  label: string;
+  values: Array<number | null | undefined>;
+  status?: "ok" | "warn" | "error";
+}
+
 export type NordRelayPluginHandler<
   Input extends Record<string, unknown> = Record<string, unknown>,
   Settings extends Record<string, unknown> = Record<string, unknown>,
@@ -170,6 +259,9 @@ export const ui = {
   logView,
   gallery,
   artifactCard,
+  form,
+  chart,
+  tabs,
 };
 
 export function escapeHtml(value: unknown): string {
@@ -288,8 +380,109 @@ export function artifactCard(card: NordRelayUiArtifactCard): string {
   return `<div class="artifact-card">${image}<strong>${title}${status}</strong>${detail}</div>`;
 }
 
+export function form(fields: NordRelayUiFormField[]): string {
+  if (!fields.length) return empty("No form fields.");
+  return `<div class="form-grid">${fields.map((field) => formField(field)).join("")}</div>`;
+}
+
+export function chart(series: NordRelayUiChartSeries[], options: { height?: number; className?: string } = {}): string {
+  if (!series.length) return empty("No chart data.");
+  const height = Math.max(80, Number(options.height) || 180);
+  const max = Math.max(1, ...series.flatMap((item) => item.values.map((value) => Number(value) || 0)));
+  const rows = series.map((item, seriesIndex) => {
+    const points = item.values.map((value, index) => {
+      const x = item.values.length <= 1 ? 0 : (index / (item.values.length - 1)) * 100;
+      const y = 100 - ((Number(value) || 0) / max) * 100;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    }).join(" ");
+    return `<polyline class="chart-line ${statusClass(item.status ?? seriesIndex)}" points="${points}"></polyline>`;
+  }).join("");
+  const legend = `<div class="chart-legend">${series.map((item) => `<span>${escapeHtml(item.label)}</span>`).join("")}</div>`;
+  return `<div class="${classesFor("metrics-chart", options.className)}" style="--chart-height:${height}px"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${rows}</svg>${legend}</div>`;
+}
+
+export function tabs(items: Array<{ id: string; label: unknown; active?: boolean; data?: Record<string, unknown> }>): string {
+  return `<div class="section-tabs" role="tablist">${items.map((item) => {
+    const active = item.active ? " active" : "";
+    return `<button type="button" role="tab" class="${active.trim()}" aria-selected="${item.active ? "true" : "false"}" data-tab-id="${attr(item.id)}"${dataAttrs(item.data)}>${escapeHtml(item.label)}</button>`;
+  }).join("")}</div>`;
+}
+
+export function definePluginManifest<const Manifest extends NordRelayPluginManifest>(manifest: Manifest): Manifest {
+  validateManifestBasics(manifest);
+  return manifest;
+}
+
+export const manifest = {
+  define: definePluginManifest,
+  command(name: string, title: string, options: Record<string, unknown> = {}) {
+    return { name, title, ...options };
+  },
+  workflowAction(id: string, title: string, options: Record<string, unknown> = {}) {
+    return { id, title, ...options };
+  },
+  webPanel(id: string, title: string, options: Record<string, unknown> = {}) {
+    return { id, title, ...options };
+  },
+  collector(id: string, title: string, options: Record<string, unknown> = {}) {
+    return { id, title, ...options };
+  },
+  setting(key: string, label: string, type: NordRelayUiFormField["type"], options: Record<string, unknown> = {}) {
+    return { key, label, type, ...options };
+  },
+};
+
+export function generatePluginMarkdown(plugin: NordRelayPluginManifest): string {
+  const capabilities = plugin.capabilities ?? {};
+  const commandRows = (capabilities.commands ?? []).map((item) => `| \`${item.name}\` | ${item.title ?? ""} | ${item.permission ?? ""} |`);
+  const settingsRows = (plugin.settings ?? []).map((item) => `| \`${item.key}\` | ${item.type} | ${item.default === undefined ? "" : `\`${String(item.default)}\``} | ${item.description ?? ""} |`);
+  return [
+    `# ${plugin.name}`,
+    "",
+    plugin.description ?? "",
+    "",
+    "## Permissions",
+    "",
+    ...(plugin.permissions?.length ? plugin.permissions.map((permission) => `- \`${permission}\``) : ["No permissions declared."]),
+    "",
+    "## Commands",
+    "",
+    commandRows.length ? "| Command | Title | Permission |\n| --- | --- | --- |\n" + commandRows.join("\n") : "No commands declared.",
+    "",
+    "## Settings",
+    "",
+    settingsRows.length ? "| Setting | Type | Default | Description |\n| --- | --- | --- | --- |\n" + settingsRows.join("\n") : "No settings declared.",
+    "",
+  ].join("\n");
+}
+
+export function panelEventsScript(channel = "jobs"): string {
+  return `api.events?.subscribe?.(${JSON.stringify(channel)}, event => api.toast?.(event?.message || event?.type || 'Plugin event'));`;
+}
+
+export function panelJobRunnerScript(options: { buttonSelector: string; command: string; resultSelector?: string; input?: Record<string, unknown> }): string {
+  const resultSelector = options.resultSelector ?? "[data-plugin-job-result]";
+  return [
+    `const jobButton = api.root.querySelector(${JSON.stringify(options.buttonSelector)});`,
+    `const jobResult = api.root.querySelector(${JSON.stringify(resultSelector)});`,
+    "if (jobButton) {",
+    "  jobButton.addEventListener('click', async () => {",
+    "    jobButton.disabled = true;",
+    `    const job = await api.jobs.start(${JSON.stringify(options.command)}, ${JSON.stringify(options.input ?? {})});`,
+    "    if (jobResult) jobResult.textContent = JSON.stringify(job, null, 2);",
+    "    jobButton.disabled = false;",
+    "  });",
+    "}",
+  ].join("\n");
+}
+
+export function pluginJobBadge(job: NordRelayPluginJob): string {
+  const status = job.status === "completed" ? "enabled" : job.status === "failed" ? "failed" : job.status === "running" ? "warning" : "disabled";
+  return badge(job.status, status);
+}
+
 export function createHost(request: NordRelayPluginRequest): NordRelayPluginHost {
-  const permissions = new Set(request.permissions ?? []);
+  const permissions = new Set<string>(request.permissions ?? []);
   return {
     permissions,
     hasPermission(permission: string) {
@@ -427,6 +620,29 @@ function tableCell<Row extends Record<string, unknown>>(column: NordRelayUiTable
   const raw = column.render ? column.render(rowValue, index) : rowValue[column.key ?? ""];
   const html = column.render ? String(raw ?? "") : escapeHtml(raw);
   return `<td data-label="${attr(column.label)}"${column.className ? ` class="${attr(column.className)}"` : ""}>${html}</td>`;
+}
+
+function formField(field: NordRelayUiFormField): string {
+  const label = escapeHtml(field.label ?? field.key);
+  const description = field.description ? `<small>${escapeHtml(field.description)}</small>` : "";
+  if (field.type === "boolean") {
+    return `<label class="checkbox"><input type="checkbox" name="${attr(field.key)}"${field.value ? " checked" : ""}> <span>${label}</span></label>`;
+  }
+  if (field.type === "select") {
+    const options = (field.options ?? []).map((option) => `<option value="${attr(option.value)}"${String(field.value ?? "") === String(option.value) ? " selected" : ""}>${escapeHtml(option.label)}</option>`).join("");
+    return `<label><span>${label}</span><select name="${attr(field.key)}">${options}</select>${description}</label>`;
+  }
+  const type = field.type === "number" ? "number" : field.type === "secret" ? "password" : "text";
+  return `<label><span>${label}</span><input type="${type}" name="${attr(field.key)}" value="${attr(field.value ?? "")}">${description}</label>`;
+}
+
+function validateManifestBasics(manifest: NordRelayPluginManifest): void {
+  if (!/^[a-z0-9][a-z0-9._-]{1,63}$/.test(manifest.id)) {
+    throw new Error("Plugin manifest id is invalid.");
+  }
+  if (!manifest.name || !manifest.version) {
+    throw new Error("Plugin manifest name and version are required.");
+  }
 }
 
 function dataAttrs(data?: Record<string, unknown>): string {
