@@ -34,6 +34,11 @@ runWorkflowAction(async ({ input, settings, context, host }) => {
 
 Host data in `context` is already filtered by NordRelay based on the permissions declared and approved for the plugin. Plugins run with a sanitized environment and their `HOME`/temporary directories point to the plugin data directory.
 
+Plugins that declare and receive `usage.read` can access
+`host.getContext("usage")` for normalized session token counters. The usage
+context contains session metadata and token totals only; prompt contents are not
+included.
+
 ## Manifest
 
 Use the typed manifest builder when authoring plugins:

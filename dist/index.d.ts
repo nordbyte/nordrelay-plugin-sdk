@@ -1,5 +1,5 @@
 export type NordRelayPluginRequestType = "workflow-action" | "command" | "web-panel" | "artifact-handler" | "diagnostics" | "collector";
-export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "files.read" | "files.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "settings.read" | "system.metrics.read" | "system.packages.read" | "system.packages.write" | "system.updates.read" | "system.updates.write" | "network";
+export type NordRelayPluginPermission = "runtime.read" | "sessions.read" | "usage.read" | "activity.read" | "artifacts.read" | "artifacts.write" | "files.read" | "files.write" | "workflows.read" | "peers.read" | "diagnostics.read" | "settings.read" | "system.metrics.read" | "system.packages.read" | "system.packages.write" | "system.updates.read" | "system.updates.write" | "network";
 export type NordRelayPluginTrustLevel = "official" | "verified" | "community" | "local" | "untrusted";
 export interface NordRelayPluginRuntimeContext {
     version?: string;
@@ -10,6 +10,7 @@ export interface NordRelayPluginRuntimeContext {
 }
 export interface NordRelayPluginHostContext {
     runtime?: NordRelayPluginRuntimeContext;
+    usage?: NordRelayPluginUsageSnapshot;
     workflows?: Record<string, unknown>;
     session?: Record<string, unknown> | null;
     sessions?: Array<Record<string, unknown>>;
@@ -18,6 +19,43 @@ export interface NordRelayPluginHostContext {
     peers?: Array<Record<string, unknown>>;
     diagnostics?: Record<string, unknown>;
     settings?: Record<string, unknown>;
+}
+export interface NordRelayPluginUsageSnapshot {
+    generatedAt: string;
+    node: {
+        id?: string;
+        name?: string;
+        platform?: string;
+        workspace?: string;
+    };
+    sessions: NordRelayPluginUsageSession[];
+}
+export interface NordRelayPluginUsageSession {
+    nodeId?: string;
+    nodeName?: string;
+    platform?: string;
+    agentId: string;
+    agentLabel: string;
+    provider: string;
+    model: string | null;
+    threadId: string;
+    sessionName?: string;
+    workspace: string;
+    sessionPath?: string;
+    source: "web" | "telegram" | "discord" | "slack" | "matrix" | "cli" | "unknown";
+    createdAt: string;
+    updatedAt: string;
+    usage: NordRelayPluginUsageTokenUsage;
+    costUsd?: number;
+    confidence: "exact" | "reported" | "delta" | "estimated";
+}
+export interface NordRelayPluginUsageTokenUsage {
+    inputTokens: number;
+    cachedInputTokens: number;
+    cacheWriteTokens: number;
+    outputTokens: number;
+    reasoningOutputTokens: number;
+    totalTokens: number;
 }
 export interface NordRelayPluginRequest<Input extends Record<string, unknown> = Record<string, unknown>, Settings extends Record<string, unknown> = Record<string, unknown>> {
     protocolVersion: 1;
